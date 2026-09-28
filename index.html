@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SI-PATUH | Sistem Informasi Persuratan dan Arsip Terpadu</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0b7a5c;--primary2:#075c48;--light:#eef8f4;--text:#20302a;--muted:#6d7c76;--border:#e5ece9}
+body{font-family:Arial,"Segoe UI",sans-serif;background:#f5f8f7;color:var(--text)}
+button,input,select,textarea{font:inherit}
+.login-page{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#0b7a5c,#fff);z-index:9999}
+.login-box{width:360px;padding:35px;background:#285035;border-radius:16px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,.25)}
+.login-logo{width:65px;height:65px;margin:0 auto 15px;background:#fff;border-radius:18px;display:grid;place-items:center;font-size:34px}
+.login-box h1{color:#fff;font-size:27px;margin-bottom:5px}
+.subtitle{color:#d9eee7;font-size:13px;margin-bottom:25px}
+.login-box input{display:block;width:100%;padding:13px;margin:12px 0;border:none;border-radius:9px;outline:none;background:#fff;color:#222}
+.login-box>div>button:not(.auth-link-btn){display:block;width:100%;padding:13px;margin-top:16px;border:none;border-radius:9px;background:#0b7a5c;color:#fff;font-weight:bold;cursor:pointer}
+.auth-title{color:#fff;font-size:17px;font-weight:800;margin:2px 0 14px}
+.auth-link-btn{width:100%;border:0;background:transparent;color:#d9eee7;cursor:pointer;margin-top:12px;font-size:12px}
+.msg{min-height:20px;margin-top:13px;color:#ffd2d2;font-size:13px}
+.app{display:none;min-height:100vh}
+.sidebar{width:250px;background:linear-gradient(180deg,var(--primary2),var(--primary));color:#fff;padding:22px 15px;position:fixed;inset:0 auto 0 0;z-index:100;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:12px;padding:5px 10px 25px}
+.logo{width:45px;height:45px;border-radius:13px;background:#fff;display:grid;place-items:center;font-size:23px}
+.brand h1{font-size:18px}.brand small{opacity:.75}
+.nav{display:flex;flex-direction:column;gap:5px}
+.nav button{width:100%;border:0;background:transparent;color:#dff5ed;text-align:left;padding:12px 14px;border-radius:10px;cursor:pointer;transition:.2s}
+.nav button:hover,.nav button.active{background:rgba(255,255,255,.17);color:#fff}
+.nav span{margin-right:10px}
+.sidebar-footer{margin-top:25px;font-size:12px;opacity:.9}
+.logout-btn,.wa-btn{margin-top:10px;width:100%;padding:10px;border-radius:9px;cursor:pointer;color:#fff;font-weight:600}
+.logout-btn{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08)}
+.wa-btn{border:0;background:#02b84d}
+.main{margin-left:250px;width:calc(100% - 250px);min-height:100vh}
+.topbar{height:70px;background:#fff;border-bottom:1px solid #e4ebe8;display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:50}
+.topbar h2{font-size:20px}.topbar small{color:var(--muted)}
+.user-info{display:flex;align-items:center;gap:10px;font-size:14px}
+.role-badge{padding:5px 9px;border-radius:20px;background:#eaf6f1;color:var(--primary);font-size:11px;font-weight:bold}
+.content{padding:28px;max-width:1500px;margin:auto}
+.page{display:none}.page.active{display:block}
+.welcome{background:linear-gradient(120deg,var(--primary),#13966f);color:#fff;border-radius:18px;padding:25px;margin-bottom:22px}
+.welcome h1{font-size:26px;margin-bottom:7px}.welcome p{opacity:.9}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:17px;margin-bottom:22px}
+.card{background:#fff;border:1px solid var(--border);border-radius:15px;padding:20px;box-shadow:0 4px 15px rgba(20,60,45,.04)}
+.stat{display:flex;justify-content:space-between;align-items:center}
+.stat-icon{width:48px;height:48px;border-radius:13px;background:var(--light);display:grid;place-items:center;font-size:23px}
+.stat h3{font-size:26px;margin-top:8px}.stat p{color:var(--muted);font-size:13px}
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}
+.card-title{margin-bottom:18px}.card-title h3{font-size:17px}
+.flow{display:flex;flex-direction:column;align-items:flex-start;font-size:14px}
+.flow div{padding:9px 14px;background:var(--light);border-radius:10px;border:1px solid #d7ece4}
+.flow i{font-style:normal;color:var(--primary);padding:3px 0 3px 14px;font-weight:bold}
+.table-wrapper{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:12px 10px;border-bottom:1px solid #edf1ef;text-align:left;font-size:13px}
+th{color:#62726b;font-size:12px;background:#fafcfb}
+.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.good{background:#e2f6ec;color:#13724e}.badge.warn{background:#fff4d9;color:#986b08}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;padding:9px 13px;cursor:pointer;font-weight:600;transition:.2s}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:#edf5f2;color:var(--primary)}
+.btn-danger{background:#fdeceb;color:#b13d39}
+.btn-edit{background:#fff4d9;color:#986b08}
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:18px}
+.search{padding:10px 13px;border:1px solid #dbe5e1;border-radius:9px;outline:none;min-width:240px;background:#fff}
+.search:focus{border-color:var(--primary)}
+.section-head{margin-bottom:20px}.section-head h2{font-size:24px}.section-head p{color:var(--muted);margin-top:5px}
+.modal{display:none;position:fixed;inset:0;background:rgba(10,30,24,.55);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-box{background:#fff;width:min(700px,100%);max-height:90vh;overflow:auto;border-radius:16px;padding:24px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.close{border:0;background:#edf2f0;width:35px;height:35px;border-radius:50%;cursor:pointer;font-size:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700}
+.field input,.field select,.field textarea{padding:11px;border:1px solid #d9e3df;border-radius:8px;outline:none;background:#fff}
+.form-actions{margin-top:20px;display:flex;justify-content:flex-end;gap:10px}
+.empty{text-align:center;padding:35px;color:var(--muted)}
+.stock-item{margin-bottom:18px}
+.stock-header{display:flex;justify-content:space-between;margin-bottom:7px;font-size:13px}
+.bar{height:10px;background:#e8efec;border-radius:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:10px}
+.mobile-menu{display:none;border:0;background:none;font-size:23px;cursor:pointer;margin-right:12px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:720px){.sidebar{transform:translateX(-100%);transition:.25s}.sidebar.open{transform:none}.main{margin-left:0;width:100%}.mobile-menu{display:block}.topbar{padding:0 15px}.content{padding:14px}.toolbar{flex-direction:column;align-items:stretch}.search{width:100%;min-width:0}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:460px){.login-box{width:calc(100% - 30px);padding:25px}.cards{grid-template-columns:1fr}}
+@media print{.sidebar,.topbar,.toolbar .btn,.no-print{display:none!important}.main{margin:0;width:100%}}
+</style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">✉️</div>
+    <h1>SI-PATUH</h1>
+    <p class="subtitle">Sistem Informasi Persuratan dan Arsip Terpadu<br>UPTD Benih Induk Aneka Tanaman Gabe Hutaraja</p>
+    <div id="loginForm">
+      <div class="auth-title">Masuk ke Sistem</div>
+      <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <button type="button" id="loginButton">🔐 Masuk</button>
+      <button type="button" class="auth-link-btn" id="showRegisterButton">Belum punya akun? <b>Daftar</b></button>
+      <button type="button" class="auth-link-btn" id="forgotPasswordButton">Lupa password?</button>
+      <p class="msg" id="loginMessage"></p>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="auth-title">Daftar Akun Baru</div>
+      <input type="text" id="registerName" placeholder="Nama lengkap">
+      <input type="text" id="registerUsername" placeholder="Username">
+      <input type="email" id="registerEmail" placeholder="Email">
+      <input type="password" id="registerPassword" placeholder="Password minimal 6 karakter">
+      <input type="password" id="registerPassword2" placeholder="Ulangi password">
+      <button type="button" id="registerButton">📝 Daftar Akun</button>
+      <button type="button" class="auth-link-btn" id="showLoginButton">Sudah punya akun? <b>Masuk</b></button>
+      <p class="msg" id="registerMessage"></p>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="dashboardApp">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">✉️</div><div><h1>SI-PATUH</h1><small>UPTD Benih Induk</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-footer">
+      Sistem Informasi Persuratan dan Arsip Terpadu<br>Gabe Hutaraja
+      <button class="wa-btn" onclick="contactAdmin()">💬 Hubungi Admin</button>
+      <button class="logout-btn" onclick="logout()">🚪 Keluar</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center">
+        <button class="mobile-menu" onclick="toggleSide()">☰</button>
+        <div><h2 id="pageTitle">Dashboard</h2><small id="today"></small></div>
+      </div>
+      <div class="user-info">👤 <b id="userName">User</b> <span class="role-badge" id="userRole">Pengguna</span></div>
+    </header>
+
+    <div class="content" id="content">
+      <section id="dashboard" class="page active">
+        <div class="welcome">
+          <h1>Selamat Datang di SI-PATUH ✉️</h1>
+          <p>Sistem Informasi Persuratan dan Arsip Terpadu UPTD Benih Induk Aneka Tanaman Gabe Hutaraja.</p>
+        </div>
+        <div class="cards" id="statCards"></div>
+        <div class="grid2">
+          <div class="card"><div class="card-title"><h3>Alur SI-PATUH</h3></div><div class="flow" id="flow"></div></div>
+          <div class="card"><div class="card-title"><h3>Ringkasan Status Surat Masuk</h3></div><div id="statusSummary"></div></div>
+        </div>
+      </section>
+
+      <section id="monitoring" class="page">
+        <div class="section-head"><h2>Monitoring Status Surat</h2><p>Pantau dan perbarui posisi surat masuk dari diterima hingga diarsipkan.</p></div>
+        <div class="card"><div class="table-wrapper"><table>
+          <thead><tr><th>No. Agenda</th><th>Perihal</th><th>Pengirim</th><th>Status</th><th>Progres</th><th class="admin-column">Ubah Status</th></tr></thead>
+          <tbody id="tblMonitoring"></tbody></table></div></div>
+      </section>
+
+      <section id="cari" class="page">
+        <div class="section-head"><h2>Pencarian Dokumen</h2><p>Cari di seluruh surat masuk, surat keluar, disposisi, dan arsip.</p></div>
+        <div class="card">
+          <div class="toolbar"><input class="search" id="searchAll" oninput="renderCari()" placeholder="🔎 Cari nomor, perihal, pengirim, tujuan..." style="width:100%"></div>
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Jenis</th><th>Nomor</th><th>Perihal</th><th>Pihak Terkait</th><th>Tanggal</th></tr></thead>
+            <tbody id="tblCari"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="laporan" class="page">
+        <div class="section-head"><h2>Rekapitulasi / Laporan</h2><p>Rekap jumlah surat dan arsip per periode.</p></div>
+        <div class="card">
+          <div class="toolbar">
+            <input class="search" type="month" id="bulanLaporan" oninput="renderLaporan()">
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak Laporan</button>
+          </div>
+          <div class="table-wrapper"><table>
+            <thead><tr><th>Kategori</th><th>Jumlah</th></tr></thead>
+            <tbody id="tblLaporan"></tbody></table></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="modalTitle">Tambah Data</h2><button class="close" onclick="closeModal()">×</button></div>
+    <form id="dataForm">
+      <div id="formFields" class="form-grid"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Data</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+/* GANTI dengan config Firebase project SI-PATUH milik Anda */
+const firebaseConfig = {
+  apiKey: "AIzaSyDYJg0xyyeKkSe0rVFFff65tRQOBLJIZ-Y",
+  authDomain: "si-benih-gabe-bffb0.firebaseapp.com",
+  projectId: "si-benih-gabe-bffb0",
+  storageBucket: "si-benih-gabe-bffb0.firebasestorage.app",
+  messagingSenderId: "137680038129",
+  appId: "1:137680038129:web:8c2e5dda820ddfc7706150"
+};
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let role = "", uid = "", curType = "", editId = null;
+
+/* ===== KONFIGURASI FITUR ===== */
+const ST = ["Dicatat","Diteruskan ke Kepala","Disposisi","Didistribusikan","Tindak Lanjut","Status Diperbarui","Diarsipkan"];
+const T = {
+  masuk:{col:"suratMasuk",icon:"📥",title:"Register Surat Masuk",label:"Surat Masuk",desc:"Catat seluruh surat yang diterima UPTD.",
+    f:[["noAgenda","No. Agenda"],["noSurat","Nomor Surat"],["pengirim","Asal / Pengirim"],["perihal","Perihal"],["tgl","Tanggal Terima","date"],["status","Status","select",ST]]},
+  keluar:{col:"suratKeluar",icon:"📤",title:"Register Surat Keluar",label:"Surat Keluar",desc:"Catat seluruh surat yang dikirim UPTD.",
+    f:[["noSurat","Nomor Surat"],["tujuan","Tujuan"],["perihal","Perihal"],["tgl","Tanggal Surat","date"],["status","Status","select",["Draft","Terkirim","Diarsipkan"]]]},
+  disposisi:{col:"disposisi",icon:"📝",title:"Disposisi Surat",label:"Disposisi",desc:"Catat disposisi Kepala UPTD kepada staf/bagian terkait.",
+    f:[["noSurat","Nomor Surat"],["perihal","Perihal"],["tujuan","Diteruskan ke Staf/Bagian"],["instruksi","Instruksi Disposisi"],["tgl","Tanggal Disposisi","date"],["status","Status","select",["Proses","Selesai"]]]},
+  arsip:{col:"arsip",icon:"🗄️",title:"Database Arsip",label:"Arsip Digital",desc:"Simpan data dan lokasi dokumen yang diarsipkan secara digital.",
+    f:[["noSurat","Nomor / Kode Arsip"],["jenis","Jenis","select",["Surat Masuk","Surat Keluar","Lainnya"]],["perihal","Perihal"],["tgl","Tanggal Dokumen","date"],["lokasi","Lokasi File / Link Drive"],["ket","Keterangan"]]}
+};
+const data = {masuk:[],keluar:[],disposisi:[],arsip:[]};
+const pages = [["dashboard","🏠","Dashboard"],["masuk","📥","Register Surat Masuk"],["keluar","📤","Register Surat Keluar"],["disposisi","📝","Disposisi Surat"],["monitoring","📡","Monitoring Status Surat"],["arsip","🗄️","Database Arsip"],["cari","🔎","Pencarian Dokumen"],["laporan","📊","Rekapitulasi / Laporan"]];
+const flowSteps = ["Surat diterima","Dicatat dalam SI-PATUH","Diteruskan kepada Kepala UPTD","Disposisi","Didistribusikan kepada staf/bagian terkait","Tindak lanjut","Status diperbarui","Dokumen diarsipkan secara digital"];
+const titles = Object.fromEntries(pages.map(p => [p[0], p[2]]));
+
+/* ===== BANGUN HALAMAN ===== */
+$("nav").innerHTML = pages.map((p,i) => `<button class="${i?"":"active"}" onclick="showPage('${p[0]}',this)"><span>${p[1]}</span>${p[2]}</button>`).join("");
+$("flow").innerHTML = flowSteps.map(s => `<div>${s}</div>`).join("<i>↓</i>");
+Object.entries(T).forEach(([k,t]) => {
+  const s = document.createElement("section"); s.id = k; s.className = "page";
+  s.innerHTML = `<div class="section-head"><h2>${t.title}</h2><p>${t.desc}</p></div><div class="card"><div class="toolbar"><input class="search" id="s_${k}" oninput="renderAll()" placeholder="🔎 Cari ${t.label.toLowerCase()}..."><button class="btn btn-primary admin-only" onclick="openModal('${k}')">＋ Tambah ${t.label}</button></div><div class="table-wrapper"><table><thead><tr>${t.f.map(f=>`<th>${f[1]}</th>`).join("")}<th class="admin-column">Aksi</th></tr></thead><tbody id="t_${k}"></tbody></table></div></div>`;
+  $("content").appendChild(s);
+});
+
+/* ===== AUTH ===== */
+const setMsg = (id,t,ok) => { $(id).textContent = t; $(id).style.color = ok ? "#c9ffe5" : "#ffd2d2"; };
+const errMap = {"auth/invalid-credential":"Email atau password salah.","auth/invalid-email":"Format email tidak valid.","auth/email-already-in-use":"Email sudah terdaftar.","auth/weak-password":"Password minimal 6 karakter.","auth/too-many-requests":"Terlalu banyak percobaan. Coba lagi nanti.","auth/network-request-failed":"Koneksi internet bermasalah."};
+const fe = e => errMap[e?.code] || e?.message || "Terjadi kesalahan.";
+function toggleAuth(reg){ $("loginForm").style.display = reg?"none":"block"; $("registerForm").style.display = reg?"block":"none"; setMsg("loginMessage",""); setMsg("registerMessage",""); }
+
+async function login(){
+  const em = $("loginEmail").value.trim().toLowerCase(), pw = $("loginPassword").value;
+  if(!em||!pw) return setMsg("loginMessage","Email dan password wajib diisi.");
+  try{ await signInWithEmailAndPassword(auth,em,pw); }catch(e){ setMsg("loginMessage",fe(e)); }
+}
+async function register(){
+  const name=$("registerName").value.trim(), username=$("registerUsername").value.trim().toLowerCase(), em=$("registerEmail").value.trim().toLowerCase(), pw=$("registerPassword").value;
+  if(!name||!username||!em||!pw) return setMsg("registerMessage","Semua field wajib diisi.");
+  if(pw.length<6) return setMsg("registerMessage","Password minimal 6 karakter.");
+  if(pw!==$("registerPassword2").value) return setMsg("registerMessage","Konfirmasi password tidak sama.");
+  try{
+    const c = await createUserWithEmailAndPassword(auth,em,pw);
+    await updateProfile(c.user,{displayName:name});
+    await setDoc(doc(db,"users",c.user.uid),{uid:c.user.uid,nama:name,username,email:em,role:"user",createdAt:new Date().toISOString()});
+  }catch(e){ setMsg("registerMessage",fe(e)); }
+}
+async function resetPw(){
+  const em = $("loginEmail").value.trim().toLowerCase();
+  if(!em) return setMsg("loginMessage","Masukkan email terlebih dahulu.");
+  try{ await sendPasswordResetEmail(auth,em); setMsg("loginMessage","Link reset password dikirim ke email.",1); }catch(e){ setMsg("loginMessage",fe(e)); }
+}
+onAuthStateChanged(auth, async user => {
+  if(!user){ $("dashboardApp").style.display="none"; $("loginPage").style.display="flex"; return; }
+  const snap = await getDoc(doc(db,"users",user.uid));
+  const p = snap.exists() ? snap.data() : {nama:user.displayName||"Pengguna",username:user.email.split("@")[0],role:"user"};
+  uid = user.uid; role = p.role==="admin" ? "admin" : "user";
+  $("userName").textContent = p.username || p.nama;
+  $("userRole").textContent = role==="admin" ? "Administrator" : "Pengguna";
+  $("loginPage").style.display = "none"; $("dashboardApp").style.display = "flex";
+  $("today").textContent = new Date().toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  await loadAll();
+});
+async function logout(){ await signOut(auth); $("loginEmail").value=""; $("loginPassword").value=""; toggleAuth(false); }
+
+/* ===== DATA ===== */
+async function loadAll(){
+  try{
+    for(const k in T){ const s = await getDocs(collection(db,T[k].col)); data[k] = s.docs.map(d => ({id:d.id,...d.data()})); }
+    renderAll();
+  }catch(e){ console.error(e); alert("Data gagal dimuat. Periksa Firestore Rules."); }
+}
+const badge = v => `<span class="badge ${["Selesai","Diarsipkan","Terkirim"].includes(v)?"good":"warn"}">${esc(v)}</span>`;
+const admin = () => role==="admin";
+
+function renderAll(){
+  for(const [k,t] of Object.entries(T)){
+    const q = $("s_"+k).value.toLowerCase();
+    const rows = data[k].filter(x => t.f.some(f => String(x[f[0]]??"").toLowerCase().includes(q)));
+    $("t_"+k).innerHTML = rows.length ? rows.map(x => `<tr>${t.f.map(f=>`<td>${f[0]==="status"?badge(x.status):esc(x[f[0]])}</td>`).join("")}<td class="admin-column">${admin()?`<div class="actions"><button class="btn btn-edit" onclick="openModal('${k}','${x.id}')">Edit</button><button class="btn btn-danger" onclick="delData('${k}','${x.id}')">Hapus</button></div>`:""}</td></tr>`).join("") : `<tr><td colspan="${t.f.length+1}" class="empty">Tidak ada data.</td></tr>`;
+  }
+  $("statCards").innerHTML = Object.entries(T).map(([k,t]) => `<div class="card stat"><div><p>Total ${t.label}</p><h3>${data[k].length}</h3><p>dokumen tercatat</p></div><div class="stat-icon">${t.icon}</div></div>`).join("");
+  const mx = Math.max(1,...ST.map(s => data.masuk.filter(x=>x.status===s).length));
+  $("statusSummary").innerHTML = data.masuk.length ? ST.map(s => { const n = data.masuk.filter(x=>x.status===s).length; return `<div class="stock-item"><div class="stock-header"><span>${s}</span><b>${n}</b></div><div class="bar"><i style="width:${n/mx*100}%"></i></div></div>`; }).join("") : '<div class="empty">Belum ada surat masuk.</div>';
+  $("tblMonitoring").innerHTML = data.masuk.length ? data.masuk.map(x => { const i = Math.max(0,ST.indexOf(x.status)); return `<tr><td>${esc(x.noAgenda)}</td><td>${esc(x.perihal)}</td><td>${esc(x.pengirim)}</td><td>${badge(x.status)}</td><td style="min-width:120px"><div class="bar"><i style="width:${(i+1)/ST.length*100}%"></i></div></td><td class="admin-column">${admin()?`<select class="search" style="min-width:0" onchange="setStatus('${x.id}',this.value)">${ST.map(s=>`<option ${s===x.status?"selected":""}>${s}</option>`).join("")}</select>`:""}</td></tr>`; }).join("") : '<tr><td colspan="6" class="empty">Belum ada surat masuk.</td></tr>';
+  renderCari(); renderLaporan();
+  document.querySelectorAll(".admin-only,.admin-column").forEach(el => el.style.display = admin() ? "" : "none");
+}
+async function setStatus(id,status){
+  await updateDoc(doc(db,"suratMasuk",id),{status,updatedAt:new Date().toISOString(),updatedBy:uid});
+  await loadAll();
+}
+function renderCari(){
+  const q = $("searchAll").value.toLowerCase().trim();
+  if(!q){ $("tblCari").innerHTML = '<tr><td colspan="5" class="empty">Ketik kata kunci untuk mencari dokumen.</td></tr>'; return; }
+  const r = [];
+  for(const [k,t] of Object.entries(T)) data[k].forEach(x => { if(t.f.some(f => String(x[f[0]]??"").toLowerCase().includes(q))) r.push(`<tr><td>${t.label}</td><td>${esc(x.noSurat||x.noAgenda)}</td><td>${esc(x.perihal)}</td><td>${esc(x.pengirim||x.tujuan)}</td><td>${esc(x.tgl)}</td></tr>`); });
+  $("tblCari").innerHTML = r.length ? r.join("") : '<tr><td colspan="5" class="empty">Dokumen tidak ditemukan.</td></tr>';
+}
+function renderLaporan(){
+  const b = $("bulanLaporan").value, f = k => data[k].filter(x => !b || String(x.tgl||"").startsWith(b));
+  const rows = [["Total Surat Masuk",f("masuk").length],["Total Surat Keluar",f("keluar").length],["Total Disposisi",f("disposisi").length],["Total Arsip Digital",f("arsip").length]];
+  ST.forEach(s => rows.push(["Surat Masuk — "+s, f("masuk").filter(x=>x.status===s).length]));
+  $("tblLaporan").innerHTML = rows.map((r,i) => `<tr><td>${i<4?`<b>${r[0]}</b>`:r[0]}</td><td>${r[1]}</td></tr>`).join("");
+}
+
+/* ===== MODAL ===== */
+function openModal(type,id=null){
+  if(!admin()) return alert("Hanya Admin yang dapat mengubah data.");
+  curType = type; editId = id;
+  $("modalTitle").textContent = (id?"Edit ":"Tambah ") + T[type].label;
+  $("formFields").innerHTML = T[type].f.map(([k,l,t,o]) => `<div class="field ${["perihal","instruksi","lokasi","ket"].includes(k)?"full":""}"><label>${l}</label>${t==="select"?`<select name="${k}">${o.map(x=>`<option>${x}</option>`).join("")}</select>`:`<input name="${k}" type="${t||"text"}" required>`}</div>`).join("");
+  if(id){ const it = data[type].find(x => x.id===id); if(it) Object.keys(it).forEach(k => { const el = document.querySelector(`#formFields [name="${k}"]`); if(el) el.value = it[k]; }); }
+  $("modal").classList.add("show");
+}
+function closeModal(){ $("modal").classList.remove("show"); $("dataForm").reset(); editId = null; }
+$("dataForm").addEventListener("submit", async e => {
+  e.preventDefault(); if(!admin()) return;
+  const obj = Object.fromEntries(new FormData(e.currentTarget)), c = T[curType].col, now = new Date().toISOString();
+  try{
+    if(editId) await updateDoc(doc(db,c,editId),{...obj,updatedAt:now,updatedBy:uid});
+    else await addDoc(collection(db,c),{...obj,createdAt:now,createdBy:uid});
+    closeModal(); await loadAll(); alert("Data berhasil disimpan.");
+  }catch(err){ console.error(err); alert("Gagal menyimpan data. Periksa Firestore Rules."); }
+});
+async function delData(type,id){
+  if(!admin()) return alert("Hanya Admin yang dapat menghapus data.");
+  if(!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+  try{ await deleteDoc(doc(db,T[type].col,id)); await loadAll(); }catch(e){ alert("Gagal menghapus data."); }
+}
+
+/* ===== UI ===== */
+function showPage(id,btn){
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  $(id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+  btn?.classList.add("active");
+  $("pageTitle").textContent = titles[id]; $("sidebar").classList.remove("open");
+}
+const toggleSide = () => $("sidebar").classList.toggle("open");
+const contactAdmin = () => window.open("https://wa.me/628116580780?text="+encodeURIComponent("Halo Admin SI-PATUH, saya ingin bertanya mengenai sistem persuratan dan arsip."),"_blank");
+
+$("loginButton").onclick = login; $("registerButton").onclick = register;
+$("showRegisterButton").onclick = () => toggleAuth(true); $("showLoginButton").onclick = () => toggleAuth(false);
+$("forgotPasswordButton").onclick = resetPw;
+$("loginPassword").onkeydown = e => { if(e.key==="Enter") login(); };
+$("registerPassword2").onkeydown = e => { if(e.key==="Enter") register(); };
+
+Object.assign(window,{showPage,toggleSide,logout,openModal,closeModal,delData,contactAdmin,renderAll,renderCari,renderLaporan,setStatus});
+</script>
+</body>
+</html>
