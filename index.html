@@ -10,12 +10,13 @@
 body{font-family:Arial,"Segoe UI",sans-serif;background:#f5f8f7;color:var(--text)}
 button,input,select,textarea{font:inherit}
 .login-page{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#0b7a5c,#fff);z-index:9999}
-.login-box{width:360px;padding:35px;background:#285035;border-radius:16px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,.25)}
+.login-box{width:360px;padding:35px;background:#285035;border-radius:16px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,.25);max-height:95vh;overflow-y:auto}
 .login-logo{width:65px;height:65px;margin:0 auto 15px;background:#fff;border-radius:18px;display:grid;place-items:center;font-size:34px}
 .login-box h1{color:#fff;font-size:27px;margin-bottom:5px}
 .subtitle{color:#d9eee7;font-size:13px;margin-bottom:25px}
 .login-box input{display:block;width:100%;padding:13px;margin:12px 0;border:none;border-radius:9px;outline:none;background:#fff;color:#222}
-.login-box>div>button:not(.auth-link-btn){display:block;width:100%;padding:13px;margin-top:16px;border:none;border-radius:9px;background:#0b7a5c;color:#fff;font-weight:bold;cursor:pointer}
+.login-box .main-btn{display:block;width:100%;padding:13px;margin-top:16px;border:none;border-radius:9px;background:#0b7a5c;color:#fff;font-weight:bold;cursor:pointer}
+.login-box .main-btn:disabled{opacity:.6;cursor:wait}
 .auth-title{color:#fff;font-size:17px;font-weight:800;margin:2px 0 14px}
 .auth-link-btn{width:100%;border:0;background:transparent;color:#d9eee7;cursor:pointer;margin-top:12px;font-size:12px}
 .msg{min-height:20px;margin-top:13px;color:#ffd2d2;font-size:13px}
@@ -101,7 +102,7 @@ th{color:#62726b;font-size:12px;background:#fafcfb}
       <div class="auth-title">Masuk ke Sistem</div>
       <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
       <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-      <button type="button" id="loginButton">🔐 Masuk</button>
+      <button type="button" class="main-btn" id="loginButton">🔐 Masuk</button>
       <button type="button" class="auth-link-btn" id="showRegisterButton">Belum punya akun? <b>Daftar</b></button>
       <button type="button" class="auth-link-btn" id="forgotPasswordButton">Lupa password?</button>
       <p class="msg" id="loginMessage"></p>
@@ -113,7 +114,7 @@ th{color:#62726b;font-size:12px;background:#fafcfb}
       <input type="email" id="registerEmail" placeholder="Email">
       <input type="password" id="registerPassword" placeholder="Password minimal 6 karakter">
       <input type="password" id="registerPassword2" placeholder="Ulangi password">
-      <button type="button" id="registerButton">📝 Daftar Akun</button>
+      <button type="button" class="main-btn" id="registerButton">📝 Daftar Akun</button>
       <button type="button" class="auth-link-btn" id="showLoginButton">Sudah punya akun? <b>Masuk</b></button>
       <p class="msg" id="registerMessage"></p>
     </div>
@@ -202,18 +203,21 @@ th{color:#62726b;font-size:12px;background:#fafcfb}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { initializeFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-/* GANTI dengan config Firebase project SI-PATUH milik Anda */
 const firebaseConfig = {
-  apiKey: "AIzaSyDYJg0xyyeKkSe0rVFFff65tRQOBLJIZ-Y",
-  authDomain: "si-benih-gabe-bffb0.firebaseapp.com",
-  projectId: "si-benih-gabe-bffb0",
-  storageBucket: "si-benih-gabe-bffb0.firebasestorage.app",
-  messagingSenderId: "137680038129",
-  appId: "1:137680038129:web:8c2e5dda820ddfc7706150"
+  apiKey: "AIzaSyDFZpFJp9-TPpuoQfq55iNaW8rtuZCvvZo",
+  authDomain: "si-patuh-7577d.firebaseapp.com",
+  projectId: "si-patuh-7577d",
+  storageBucket: "si-patuh-7577d.firebasestorage.app",
+  messagingSenderId: "464287164416",
+  appId: "1:464287164416:web:61ab7d924f07670b9cd0e5"
 };
-const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+
+/* Daftar email admin. Tambahkan email lain di sini bila perlu. */
+const ADMIN_EMAILS = ["admin@si-patuh.com"];
+const isAdminEmail = em => ADMIN_EMAILS.includes((em || "").toLowerCase());
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -247,36 +251,73 @@ Object.entries(T).forEach(([k,t]) => {
 
 /* ===== AUTH ===== */
 const setMsg = (id,t,ok) => { $(id).textContent = t; $(id).style.color = ok ? "#c9ffe5" : "#ffd2d2"; };
-const errMap = {"auth/invalid-credential":"Email atau password salah.","auth/invalid-email":"Format email tidak valid.","auth/email-already-in-use":"Email sudah terdaftar.","auth/weak-password":"Password minimal 6 karakter.","auth/too-many-requests":"Terlalu banyak percobaan. Coba lagi nanti.","auth/network-request-failed":"Koneksi internet bermasalah."};
-const fe = e => errMap[e?.code] || e?.message || "Terjadi kesalahan.";
+const errMap = {
+  "auth/invalid-credential":"Email atau password salah.",
+  "auth/wrong-password":"Email atau password salah.",
+  "auth/user-not-found":"Akun tidak ditemukan.",
+  "auth/invalid-email":"Format email tidak valid.",
+  "auth/email-already-in-use":"Email sudah terdaftar.",
+  "auth/weak-password":"Password minimal 6 karakter.",
+  "auth/too-many-requests":"Terlalu banyak percobaan. Coba lagi nanti.",
+  "auth/network-request-failed":"Koneksi internet bermasalah.",
+  "auth/operation-not-allowed":"Login Email/Password belum diaktifkan di Firebase Authentication.",
+  "auth/unauthorized-domain":"Domain ini belum diizinkan. Tambahkan di Firebase Authentication > Settings > Authorized domains."
+};
+const fe = e => errMap[e?.code] || (e?.code ? e.code : (e?.message || "Terjadi kesalahan."));
 function toggleAuth(reg){ $("loginForm").style.display = reg?"none":"block"; $("registerForm").style.display = reg?"block":"none"; setMsg("loginMessage",""); setMsg("registerMessage",""); }
 
 async function login(){
   const em = $("loginEmail").value.trim().toLowerCase(), pw = $("loginPassword").value;
   if(!em||!pw) return setMsg("loginMessage","Email dan password wajib diisi.");
-  try{ await signInWithEmailAndPassword(auth,em,pw); }catch(e){ setMsg("loginMessage",fe(e)); }
+  const btn = $("loginButton"); btn.disabled = true; setMsg("loginMessage","Memproses...",1);
+  try{ await signInWithEmailAndPassword(auth,em,pw); setMsg("loginMessage",""); }
+  catch(e){ console.error(e); setMsg("loginMessage",fe(e)); }
+  btn.disabled = false;
 }
 async function register(){
   const name=$("registerName").value.trim(), username=$("registerUsername").value.trim().toLowerCase(), em=$("registerEmail").value.trim().toLowerCase(), pw=$("registerPassword").value;
   if(!name||!username||!em||!pw) return setMsg("registerMessage","Semua field wajib diisi.");
   if(pw.length<6) return setMsg("registerMessage","Password minimal 6 karakter.");
   if(pw!==$("registerPassword2").value) return setMsg("registerMessage","Konfirmasi password tidak sama.");
+  const btn = $("registerButton"); btn.disabled = true;
   try{
     const c = await createUserWithEmailAndPassword(auth,em,pw);
     await updateProfile(c.user,{displayName:name});
-    await setDoc(doc(db,"users",c.user.uid),{uid:c.user.uid,nama:name,username,email:em,role:"user",createdAt:new Date().toISOString()});
-  }catch(e){ setMsg("registerMessage",fe(e)); }
+    await setDoc(doc(db,"users",c.user.uid),{uid:c.user.uid,nama:name,username,email:em,role:isAdminEmail(em)?"admin":"user",createdAt:new Date().toISOString()});
+  }catch(e){ console.error(e); setMsg("registerMessage",fe(e)); }
+  btn.disabled = false;
 }
 async function resetPw(){
   const em = $("loginEmail").value.trim().toLowerCase();
   if(!em) return setMsg("loginMessage","Masukkan email terlebih dahulu.");
   try{ await sendPasswordResetEmail(auth,em); setMsg("loginMessage","Link reset password dikirim ke email.",1); }catch(e){ setMsg("loginMessage",fe(e)); }
 }
+
 onAuthStateChanged(auth, async user => {
   if(!user){ $("dashboardApp").style.display="none"; $("loginPage").style.display="flex"; return; }
-  const snap = await getDoc(doc(db,"users",user.uid));
-  const p = snap.exists() ? snap.data() : {nama:user.displayName||"Pengguna",username:user.email.split("@")[0],role:"user"};
-  uid = user.uid; role = p.role==="admin" ? "admin" : "user";
+
+  const ref = doc(db,"users",user.uid);
+  const adminEmail = isAdminEmail(user.email);
+  let p = null;
+
+  try{
+    const snap = await getDoc(ref);
+    p = snap.exists() ? snap.data() : null;
+  }catch(e){ console.error("Gagal membaca profil:", e); }
+
+  // Buat profil otomatis jika belum ada (mis. akun dibuat lewat Firebase Console)
+  if(!p){
+    p = {uid:user.uid, nama:user.displayName||(adminEmail?"Administrator":"Pengguna"),
+         username:(user.email||"user").split("@")[0], email:user.email,
+         role:adminEmail?"admin":"user", createdAt:new Date().toISOString()};
+    try{ await setDoc(ref,p); }catch(e){ console.error("Gagal membuat profil:", e); }
+  }else if(adminEmail && p.role!=="admin"){
+    p.role = "admin";
+    try{ await updateDoc(ref,{role:"admin"}); }catch(e){ console.error("Gagal memperbarui role:", e); }
+  }
+
+  uid = user.uid;
+  role = (adminEmail || p.role==="admin") ? "admin" : "user";
   $("userName").textContent = p.username || p.nama;
   $("userRole").textContent = role==="admin" ? "Administrator" : "Pengguna";
   $("loginPage").style.display = "none"; $("dashboardApp").style.display = "flex";
@@ -289,8 +330,8 @@ async function logout(){ await signOut(auth); $("loginEmail").value=""; $("login
 async function loadAll(){
   try{
     for(const k in T){ const s = await getDocs(collection(db,T[k].col)); data[k] = s.docs.map(d => ({id:d.id,...d.data()})); }
-    renderAll();
   }catch(e){ console.error(e); alert("Data gagal dimuat. Periksa Firestore Rules."); }
+  renderAll();
 }
 const badge = v => `<span class="badge ${["Selesai","Diarsipkan","Terkirim"].includes(v)?"good":"warn"}">${esc(v)}</span>`;
 const admin = () => role==="admin";
@@ -309,8 +350,10 @@ function renderAll(){
   document.querySelectorAll(".admin-only,.admin-column").forEach(el => el.style.display = admin() ? "" : "none");
 }
 async function setStatus(id,status){
-  await updateDoc(doc(db,"suratMasuk",id),{status,updatedAt:new Date().toISOString(),updatedBy:uid});
-  await loadAll();
+  try{
+    await updateDoc(doc(db,"suratMasuk",id),{status,updatedAt:new Date().toISOString(),updatedBy:uid});
+    await loadAll();
+  }catch(e){ console.error(e); alert("Gagal memperbarui status. Periksa Firestore Rules."); }
 }
 function renderCari(){
   const q = $("searchAll").value.toLowerCase().trim();
@@ -348,7 +391,7 @@ $("dataForm").addEventListener("submit", async e => {
 async function delData(type,id){
   if(!admin()) return alert("Hanya Admin yang dapat menghapus data.");
   if(!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
-  try{ await deleteDoc(doc(db,T[type].col,id)); await loadAll(); }catch(e){ alert("Gagal menghapus data."); }
+  try{ await deleteDoc(doc(db,T[type].col,id)); await loadAll(); }catch(e){ console.error(e); alert("Gagal menghapus data."); }
 }
 
 /* ===== UI ===== */
